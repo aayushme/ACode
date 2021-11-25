@@ -1,53 +1,137 @@
-import * as actionTypes from './actionsTypes'
-import axios from 'axios'
+import * as actionTypes from "./actionsTypes";
+import axios from "axios";
 
-export const authStart = () =>{
-    return {
-        type :actionTypes.AUTH_START
-    }
-}
+export const authStart = () => {
+  return {
+    type: actionTypes.AUTH_START,
+    loading: true,
+  };
+};
 
+export const authSuccess = (data) => {
+  return {
+    type: actionTypes.AUTH_SUCCESS,
+    token: data,
+    status: null,
+    loading: false,
+  };
+};
 
-export const authSuccess = (tokenId) =>{
-    return {
-        type :actionTypes.AUTH_SUCCESS,
-        token : tokenId 
-    }
-}
+export const authFail = (err) => {
+  return {
+    type: actionTypes.AUTH_FAIL,
+    status: err,
+    loading: false,
+  };
+};
 
-export const authFail = (error) =>{
-    return {
-        type :actionTypes.AUTH_FAIL,
-        error : error
-    }
-}
+export const reduxLogin = (phone, otp) => {
+  return (dispatch) => {
+    var querystring = require("querystring");
+    dispatch(authStart());
 
-export const auth = (user_name,pwd) =>{
-    return dispatch =>{
-        dispatch(authStart());
-      var postData = 
-      JSON.stringify({
-        username: user_name,
-        password: pwd,
-      })
-    
+    var postData = querystring.stringify({
+      dial_code: "+91",
+      phone: phone,
+      otp: otp,
+    });
+
     let axiosConfig = {
       headers: {
-        'Content-Type': 'application/json;charset=UTF-8'
-    }
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     };
 
     axios
-      .post("https://mis2020.herokuapp.com/rest-auth/login/",postData,axiosConfig
+      .post(
+        "https://staging.fastor.in/v1/pwa/user/login",
+        postData,
+        axiosConfig
       )
       .then((res) => {
-        console.log("RESPONSE RECEIVED: ", res.data.key);
-        dispatch(authSuccess(res.data.key));
-        
+        console.log(res.data.status_code);
+        if (res.data.status_code === 200) {
+          console.log(res);
+          dispatch(
+            authSuccess(res.data.data.token),
+            localStorage.setItem("token", res.data.data.token)
+          );
+        } else {
+          console.log(res);
+          dispatch(authFail(res.data.error_message));
+        }
+      })
+      .catch((err) => {});
+  };
+};
+
+export const authCheckStatus = () => {
+  return (dispatch) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+    } else {
+      dispatch(authSuccess(token));
+    }
+  };
+};
+
+/*============Redux Signup===========*/
+
+export const signupStart = () => {
+  return {
+    type: actionTypes.SIGNUP_START,
+    loading: true,
+  };
+};
+
+export const signupSuccess = (data) => {
+  return {
+    type: actionTypes.SIGNUP_SUCCESS,
+    status:"OTP Sent, Please Login Now",
+    loading:false
+  };
+};
+
+export const signupfail = (err) => {
+  return {
+    type: actionTypes.SIGNUP_FAIL,
+    status:"fail",
+    loading: false,
+  };
+};
+
+export const reduxSignup = (phone) => {
+  return (dispatch) => {
+    dispatch(signupStart());
+    var querystring = require("querystring");
+    var postData = querystring.stringify({
+      dial_code: "+91",
+      phone: phone,
+    });
+    let axiosConfig = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+    axios
+      .post(
+        "https://staging.fastor.in/v1/pwa/user/register",
+        postData,
+        axiosConfig
+      )
+      .then((res) => {
+        localStorage.setItem("token", res.data.token);
+        if (res.data.status_code == 200) {
+          console.log(res);
+          dispatch(
+            signupSuccess(res.data.status)
+          );
+        } else {
+          dispatch(signupfail(res));
+        }
       })
       .catch((err) => {
-        dispatch(authFail(err));
-      })
-
-    }
-}
+        dispatch(signupfail(err));
+      });
+  };
+};

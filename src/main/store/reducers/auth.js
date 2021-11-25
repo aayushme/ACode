@@ -1,53 +1,69 @@
-import * as actionTypes from '../actions/actionsTypes';
-import { updateObject } from '../utility';
-
+import * as actionTypes from "../actions/actionsTypes";
+import { updateObject } from "../utility";
 
 const initialState = {
-    token: null,
-    userId: null,
-    error: null,
-    loading: false,
-    authRedirectPath: '/'
+  token: null,
+  status: null,
+  authloading: false,
+  signuploading:false
 };
 
-const authStart = ( state, action ) => {
-    return updateObject( state, { error: null, loading: true } );
+const authStart = (state, action) => {
+  return updateObject(state, { error: null, authloading: true });
 };
 
 const authSuccess = (state, action) => {
-
-    return updateObject( state, { 
-        token: action.token,
-        error: null,
-        loading: false
-     } );
+  return updateObject(state, {
+    token: action.token,
+    status: action.status,
+    authloading: false,
+  });
 };
 
 const authFail = (state, action) => {
-    return updateObject( state, {
-        error: action.error,
-        loading: false
-    });
+  return updateObject(state, {
+    status: action.status,
+    token: null,
+    authloading: false,
+  });
 };
 
-const authLogout = (state, action) => {
-    return updateObject(state, { token: null, userId: null });
+const signupStart = (state, action) => {
+  return updateObject(state, { error: null, signuploading: true });
 };
 
-const setAuthRedirectPath = (state, action) => {
-    return updateObject(state, { authRedirectPath: action.path })
-}
+const signupSuccess = (state, action) => {
+  return updateObject(state, {
+    status: action.status,
+    signuploading: false,
+  });
+};
 
-const reducer = ( state = initialState, action ) => {
-    switch ( action.type ) {
-        case actionTypes.AUTH_START: return authStart(state, action);
-        case actionTypes.AUTH_SUCCESS: return authSuccess(state, action);
-        case actionTypes.AUTH_FAIL: return authFail(state, action);
-        case actionTypes.AUTH_LOGOUT: return authLogout(state, action);
-        case actionTypes.SET_AUTH_REDIRECT_PATH: return setAuthRedirectPath(state,action);
-        default:
-            return state;
-    }
+const signupFail = (state, action) => {
+  return updateObject(state, {
+    status: action.status,
+    token: null,
+    signuploading: false,
+  });
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case actionTypes.AUTH_START:
+      return authStart(state, action);
+    case actionTypes.AUTH_SUCCESS:
+      return authSuccess(state, action);
+    case actionTypes.AUTH_FAIL:
+      return authFail(state, action);
+    case actionTypes.SIGNUP_SUCCESS:
+      return signupSuccess(state, action);
+    case actionTypes.SIGNUP_FAIL:
+      return signupFail(state, action);
+    case actionTypes.SIGNUP_START:
+      return signupStart(state, action);
+    default:
+      return state;
+  }
 };
 
 export default reducer;
